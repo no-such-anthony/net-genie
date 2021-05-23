@@ -1,0 +1,47 @@
+testbed:
+  name: devTestbed
+  credentials:
+    default:
+      username: fred
+      password: bedrock
+devices:
+  r1:
+    connections:
+      cli:
+        ip: r1
+        protocol: ssh
+    os: ios
+    alias: test-alias
+    type: dev1
+    role: test-role
+    series: test-series
+    model: test-model
+    platform: test-platform
+    region: test-region
+    hardware:
+      - hardware-test1
+    peripherals:
+      servers:
+        - server1
+        - server2
+  r2:
+    connections:
+      cli:
+        ip: r2
+        protocol: ssh
+    os: iosxe
+    type: dev2
+  r3:
+    connections:
+      cli:
+        ip: r3
+        protocol: ssh
+    os: iosxe
+    type: dev1
+  r4:
+    connections:
+      cli:
+        ip: r4
+        protocol: ssh
+    os: iosxe
+    type: dev2
