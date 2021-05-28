@@ -83,6 +83,7 @@ class Runner(object):
         # https://pubhub.devnetcloud.com/media/pyats/docs/async/pcall.html
         # pcall has no pool size
         # get device chunks the size of num_workers
+        # if you have a lot of devices in your task you could have a progress bar with updates per chunk?
         chunks = self.chunker(list(testbed.devices.keys()))
         for chunk in chunks:
             chunk_result = pcall(task_wrapper, device=(testbed.devices[device] for device in chunk), ckwargs=kwargs)
@@ -162,9 +163,15 @@ def main():
 
     # what else could we filter with if we added extra keys to testbed?
     # https://pubhub.devnetcloud.com/media/pyats/docs/topology/schema.html
-    # type, alias, role, series, model, platform, region, hardware, peripherals, power
+    # type, alias, role, series, model, platform, region, hardware, peripherals, power, custom
     #
-    # example attempt with role
+    # hardware and peripherals are dicts
+    #
+    # custom is an AttribDict 
+    # https://pubhub.devnetcloud.com/media/pyats/docs/datastructures/attrdict.html
+    # eg testbed.devices['r1'].custom.fred = 'says hi!'
+    #
+    # example filter attempt with role
     # is squeeze the best way to do this?
     # alternatively we could pass the information to the task and filter there?
     if args.role:

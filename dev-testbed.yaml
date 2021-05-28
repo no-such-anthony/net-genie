@@ -24,6 +24,8 @@ devices:
       servers:
         - server1
         - server2
+    custom:
+      fred: says hi!
   r2:
     connections:
       cli:
