@@ -21,6 +21,9 @@ def get_testbed():
     testbed = {}
     testbed['testbed'] = {}
     testbed['testbed']['name'] = 'dev'
+    
+    # helpful credential information
+    # https://pubhub.devnetcloud.com/media/unicon/docs/user_guide/connection.html#unicon-credentials
     testbed['testbed']['credentials'] = {}
     testbed['testbed']['credentials']['default'] = {}
     testbed['testbed']['credentials']['default']['username'] = "fred"
