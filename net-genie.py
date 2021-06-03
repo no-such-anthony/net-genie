@@ -168,7 +168,8 @@ def main():
     # https://pubhub.devnetcloud.com/media/pyats/docs/topology/schema.html
     # type, alias, role, series, model, platform, region, hardware, peripherals, power, custom
     #
-    # hardware and peripherals are dicts
+    # hardware and peripherals are whatever you want them to be strings, lists, dicts, etc
+    # everything but custom should be there on load if you want to use them
     #
     # custom is an AttribDict 
     # https://pubhub.devnetcloud.com/media/pyats/docs/datastructures/attrdict.html
