@@ -1,5 +1,5 @@
 # net-genie
-Experimenting in python with Cisco pyATS/Genie as a Network Automation Tool
+Experimenting in python with the intention of building a solid example of Cisco pyATS/Genie in action.
 
 
 Example usage:

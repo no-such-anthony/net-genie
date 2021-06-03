@@ -175,8 +175,6 @@ def main():
     # eg testbed.devices['r1'].custom.fred = 'says hi!'
     #
     # example filter attempt with role
-    # is squeeze the best way to do this?
-    # alternatively we could pass the information to the task and filter there?
     if args.role:
         f = []
         for device in testbed.devices.values():
@@ -186,6 +184,11 @@ def main():
             except AttributeError:
                 pass
         testbed.squeeze(*f, extend_devices_from_links=False)
+
+    # Other filtering options I need to explore
+    # https://pubhub.devnetcloud.com/media/genie-feature-browser/docs/#/apis/get_devices
+    # https://pubhub.devnetcloud.com/media/pyats/docs/utilities/helper_functions.html#find
+    #
 
     #print(testbed.devices.keys())
     #sys.exit()
