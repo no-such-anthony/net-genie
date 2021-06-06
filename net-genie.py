@@ -13,7 +13,8 @@ import sys
 
 from ng_testbeds import get_testbed
 from ng_runners import Runner
-from ng_tasks import run_tasks
+import ng_tasks
+#from ng_tasks import run_tasks
 
 
 def main():
@@ -68,14 +69,40 @@ def main():
     runner = Runner(4)
 
     tasks = [
-            'basic_command',
-            'dialog_command',
-            'parse_command',
-            'send_config',
-            'learn_feature',
+            {
+             'name': 'basic_command',
+             'function': ng_tasks.basic_command,
+             'kwargs': { 'command' : 'show version | inc uptime'}
+            },
+            {
+             'name': 'dialog_command',
+             'function': ng_tasks.dialog_command,
+             'kwargs': { 
+                        'command' : 'copy running-config tftp://192.168.204.1',
+                        'dialog_helper': 'copy_tftp'
+                       }
+            },
+            {
+             'name': 'parse_command',
+             'function': ng_tasks.parse_command,
+             'kwargs': { 'command' : 'show version' }
+            },
+            {
+             'name': 'send_config',
+             'function': ng_tasks.send_config,
+             'kwargs': { 
+                      'configuration' : ("service timestamps debug datetime msec\n"
+                                         "service timestamps log datetime msec\n") 
+                     }
+            },
+            {
+             'name': 'learn_feature',
+             'function': ng_tasks.learn_feature,
+             'kwargs':  { 'feature' : 'bgp' }
+            },
             ]
             
-    results = runner.run(run_tasks, name="A Test Task", testbed=testbed, tasks=tasks)
+    results = runner.run(ng_tasks.run_tasks, name="A Test Task", testbed=testbed, tasks=tasks)
 
     # print task results
     print(f"Task = {results['task']}")

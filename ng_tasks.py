@@ -3,39 +3,78 @@ from genie.libs.parser.utils.common import ParserNotFound
 from genie.metaparser.util.exceptions import SchemaEmptyParserError
 
 
-def basic_command(device, command):
-    output = device.execute(command)
-    return output
-
-
-def dialog_command(device, command, dialog):
-    # https://pubhub.devnetcloud.com/media/unicon/docs/user_guide/services/generic_services.html#execute
-    output = device.execute(command, reply=dialog)
-    return output
-
-
-def parse_command(device, command):
-    try: 
-        output = device.parse(command)
-        return {"type": "parsed", "output": output}
-    except ParserNotFound: 
-        print(f"  Error: pyATS lacks a parser for device {device.name} with os {device.os}. Gathering raw output to return.")
-    except SchemaEmptyParserError: 
-        print(f"  Error: No valid data found from output from device {device.name}. Gathering raw output to return.")
-
+def basic_command(device, command=None):
     # device.execute runs command, gathers raw output, and returns as string
-    output = device.execute(command)
-    return {"type": "raw", "output": output}
 
+    if command:
+        output = device.execute(command)
+    else:
+        output = 'No command to run.'
 
-def send_config(device, configuration):
-    output = device.configure(configuration)
     return output
 
 
-def learn_feature(device, feature):
-    output = device.learn(feature)
-    return output.info
+def dialog_command(device, command=None, dialog_helper=None):
+    # https://pubhub.devnetcloud.com/media/unicon/docs/user_guide/services/generic_services.html#execute
+
+
+    dialog = { 'copy_tftp': Dialog([
+                                    Statement(pattern=r'.*Address or name of remote host.*',
+                                                    action='sendline()',
+                                                    loop_continue=True,
+                                                    continue_timer=False),
+                                    Statement(pattern=r'.*Destination filename.*',
+                                                    action='sendline()',
+                                                    loop_continue=True,
+                                                    continue_timer=False)
+                                    ])
+            }
+
+    if command and dialog_helper:
+        output = device.execute(command, reply=dialog[dialog_helper])
+    else:
+        output = 'You need send both a command and its dialog_helper'
+
+    return output
+
+
+def parse_command(device, command=None):
+    # send a command and parse it
+
+    if command:
+        try: 
+            output = device.parse(command)
+            return {"type": "parsed", "output": output}
+        except ParserNotFound: 
+            print(f"  Error: pyATS lacks a parser for device {device.name} with os {device.os}. Gathering raw output to return.")
+        except SchemaEmptyParserError: 
+            print(f"  Error: No valid data found from output from device {device.name}. Gathering raw output to return.")
+
+        # device.execute runs command, gathers raw output, and returns as string
+        output = device.execute(command)
+        return {"type": "raw", "output": output}
+        
+    else:
+        return 'No command to run.'
+
+    
+def send_config(device, configuration=None):
+
+    if configuration:
+        output = device.configure(configuration)
+    else:
+        output = "No configuration to send."
+    return output
+
+
+def learn_feature(device, feature=None):
+
+    if feature:
+        output = device.learn(feature)
+        return output.info
+    else:
+        output = 'No feature to gather.'
+        return output
 
 
 def run_tasks(device, **kwargs):
@@ -49,48 +88,9 @@ def run_tasks(device, **kwargs):
     # connect to device
     device.connect(log_stdout=False, learn_hostname=True)
 
-    if 'basic_command' in tasks:
-        # send a command
-        command = 'show version | inc uptime'
-        output = basic_command(device, command)
-        ret['send_a_command'] = output
+    for task in tasks:
+        ret[task['name']] = task['function'](device, **task['kwargs'])
 
-    if 'dialog_command' in tasks:
-        # cater to extra dialog/interaction?
-        dialog = Dialog([
-            Statement(pattern=r'.*Address or name of remote host.*',
-                            action='sendline()',
-                            loop_continue=True,
-                            continue_timer=False),
-            Statement(pattern=r'.*Destination filename.*',
-                            action='sendline()',
-                            loop_continue=True,
-                            continue_timer=False)
-        ])
-        command = 'copy running-config tftp://192.168.204.1'
-        output = dialog_command(device, command, dialog)
-        ret['command_with_reply_dialog'] = output
-
-    if 'parse_command' in tasks:
-        # send a command and parse it
-        command = 'show version'
-        output = parse_command(device, command)
-        ret['parse_a_command'] = output
-
-    if 'send_config' in tasks:
-        # send some config
-        configuration = ("service timestamps debug datetime msec\n"
-                        "service timestamps log datetime msec\n")
-
-        output = send_config(device, configuration)
-        ret['send_some_config'] = output
-
-    if 'learn_feature' in tasks:
-        # do some learn
-        feature = 'bgp'
-        if feature:
-            output = learn_feature(device, feature)
-            ret['learn_a_feature'] = output
 
     #disconnect from device
     device.disconnect()
