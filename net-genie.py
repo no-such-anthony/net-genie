@@ -14,26 +14,21 @@ import sys
 from ng_testbeds import get_testbed
 from ng_runners import Runner
 import ng_tasks
-#from ng_tasks import run_tasks
 
 
-def main():
+def main(args):
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--device', type=str, nargs='+', required=False)
-    parser.add_argument('--role', type=str, nargs='+', required=False)
-    parser.add_argument('--testbed', type=str, required=False)
-    args = parser.parse_args()
-
+    # load testbed
     if args.testbed:
-        # load testbed from file
+        # from file
         testbed = load(args.testbed)
     else:
-        # load testbed built in code
+        # from built in code
         testbed = load(get_testbed())
-        
+    
+    # filter devices
     if args.device:
-        # attempt at a basic filter
+        # attempt at a basic filter with squeeze
         testbed.squeeze(*args.device, extend_devices_from_links=False)
 
     # what else could we filter with if we added extra keys to testbed?
@@ -58,7 +53,7 @@ def main():
                 pass
         testbed.squeeze(*f, extend_devices_from_links=False)
 
-    # Other filtering options I need to explore
+    # Other filtering options to explore
     # https://pubhub.devnetcloud.com/media/genie-feature-browser/docs/#/apis/get_devices
     # https://pubhub.devnetcloud.com/media/pyats/docs/utilities/helper_functions.html#find
     #
@@ -66,8 +61,13 @@ def main():
     #print(testbed.devices.keys())
     #sys.exit()
 
+    # Load multiprocess task runner
     runner = Runner(4)
 
+    # I would not do a task array like this in production,
+    # I prefer to just code whatever i am trying to acheive into a primary task function.
+    # Using it here I think it helps break up all the pyats/genie capabilities I am attempting to make examples for.
+    # With the side effect that it kind of looks like an ansible playbook...
     tasks = [
             {
              'name': 'basic_command',
@@ -128,4 +128,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device', type=str, nargs='+', required=False)
+    parser.add_argument('--role', type=str, nargs='+', required=False)
+    parser.add_argument('--testbed', type=str, required=False)
+    args = parser.parse_args()
+
+    main(args)

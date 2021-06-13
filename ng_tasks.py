@@ -3,7 +3,7 @@ from genie.libs.parser.utils.common import ParserNotFound
 from genie.metaparser.util.exceptions import SchemaEmptyParserError
 
 
-def basic_command(device, command=None):
+def basic_command(device, command=None, **kwargs):
     # device.execute runs command, gathers raw output, and returns as string
 
     if command:
@@ -14,7 +14,7 @@ def basic_command(device, command=None):
     return output
 
 
-def dialog_command(device, command=None, dialog_helper=None):
+def dialog_command(device, command=None, dialog_helper=None, **kwargs):
     # https://pubhub.devnetcloud.com/media/unicon/docs/user_guide/services/generic_services.html#execute
 
 
@@ -38,7 +38,7 @@ def dialog_command(device, command=None, dialog_helper=None):
     return output
 
 
-def parse_command(device, command=None):
+def parse_command(device, command=None, **kwargs):
     # send a command and parse it
 
     if command:
@@ -58,7 +58,7 @@ def parse_command(device, command=None):
         return 'No command to run.'
 
     
-def send_config(device, configuration=None):
+def send_config(device, configuration=None, **kwargs):
 
     if configuration:
         output = device.configure(configuration)
@@ -67,7 +67,7 @@ def send_config(device, configuration=None):
     return output
 
 
-def learn_feature(device, feature=None):
+def learn_feature(device, feature=None, **kwargs):
 
     if feature:
         output = device.learn(feature)
@@ -89,6 +89,13 @@ def run_tasks(device, **kwargs):
     device.connect(log_stdout=False, learn_hostname=True)
 
     for task in tasks:
+        # inject ret as run_dict in case you wanted to use the output from previous subtasks.
+        # kind of like ansible register but automatic and accessible in subtasks functions with
+        # run_dict = kwargs.pop('run_dict', {})
+        # basic_command = run_dict.get('basic_command', None)
+        task['kwargs']['run_dict'] = ret
+
+        # run subtask
         ret[task['name']] = task['function'](device, **task['kwargs'])
 
 
