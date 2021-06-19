@@ -12,7 +12,8 @@ import sys
 
 from ng_testbeds import get_testbed
 from ng_runners import Runner
-import ng_tasks
+from ng_task import ng_task
+import ng_subtasks
 
 import random
 
@@ -65,19 +66,17 @@ def main(args):
     # Load multiprocess task runner
     runner = Runner(4)
 
-    # I would not do a task array like this in production,
-    # I prefer to just code whatever i am trying to acheive into a primary task function.
-    # Using it here I think it helps break up all the pyats/genie capabilities I am attempting to make examples for.
+    # A task array helps to separate the pyats/genie capabilities that I am attempting to make examples for.
     # With the side effect that it kind of looks like an ansible playbook...
     tasks = [
             {
              'name': 'basic_command',
-             'function': ng_tasks.basic_command,
+             'function': ng_subtasks.basic_command,
              'kwargs': { 'command' : 'show version | inc uptime'}
             },
             {
              'name': 'dialog_command',
-             'function': ng_tasks.dialog_command,
+             'function': ng_subtasks.dialog_command,
              'kwargs': { 
                         'command' : 'copy running-config tftp://192.168.204.1',
                         'dialog_helper': 'copy_tftp'
@@ -85,12 +84,12 @@ def main(args):
             },
             {
              'name': 'parse_command',
-             'function': ng_tasks.parse_command,
+             'function': ng_subtasks.parse_command,
              'kwargs': { 'command' : 'show version' }
             },
             {
              'name': 'send_config',
-             'function': ng_tasks.send_config,
+             'function': ng_subtasks.send_config,
              'kwargs': { 
                        'configuration' : ("service timestamps debug datetime msec\n"
                                           "service timestamps log datetime msec\n") 
@@ -98,42 +97,44 @@ def main(args):
             },
             {
              'name': 'learn_feature',
-             'function': ng_tasks.learn_feature,
+             'function': ng_subtasks.learn_feature,
              'kwargs':  { 'feature' : 'bgp' }
             },
             {
              'name': 'configure_diff',
-             'function': ng_tasks.configure_diff,
+             'function': ng_subtasks.configure_diff,
              'kwargs':  { 'configuration':  (f"interface lo100\n"
                                              f"description random={random.randrange(100, 1000, 3)}\n")
                         }
             },
             ]
 
-    #tasks = tasks[-1:]
+    #tasks = tasks[-2:]
             
-    results = runner.run(ng_tasks.run_tasks, name="Run example tasks", testbed=testbed, tasks=tasks)
+    output = runner.run(ng_task, name="Run example tasks", testbed=testbed, tasks=tasks)
 
     # print task results
-    print(f"Task = {results['task']}")
+    print(f"Task = {output['task']}")
 
     # print results
-    for device, result in sorted(results['devices'].items()):
+    for device, task_output in sorted(output['devices'].items()):
         print('='*20,f"Results for {device}",'='*20)
-        if 'exception' not in result:
+        if 'exception' not in task_output:
             # if no exception we should have a dictionary, so lets try to pretty it up
-            for k,v in result['result'].items():
+            for k,v in task_output['result'].items():
                 print('-'*len(k))
                 print(k)
                 print('-'*len(k))
-                print(v)
+                if 'exception' in v:
+                    print('*'*5,f"ERROR")
+                print(v['result'])
                 print()
         else:
             print('*'*5,f"ERROR")
-            if isinstance(result['exception'], ConnectionError):
+            if isinstance(task_output['exception'], ConnectionError):
                 print("unicon.core.errors.ConnectionError: failed to connect")
             else:
-                print(f"{result['result']}")
+                print(f"{task_output['result']}")
     print()
 
 
