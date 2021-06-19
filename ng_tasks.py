@@ -1,6 +1,9 @@
 from unicon.eal.dialogs import Statement, Dialog
 from genie.libs.parser.utils.common import ParserNotFound
 from genie.metaparser.util.exceptions import SchemaEmptyParserError
+from genie.utils.diff import Diff
+from genie.utils import Dq
+import re
 
 
 def basic_command(device, command=None, **kwargs):
@@ -46,7 +49,7 @@ def parse_command(device, command=None, **kwargs):
             output = device.parse(command)
             return {"type": "parsed", "output": output}
         except ParserNotFound: 
-            print(f"  Error: pyATS lacks a parser for device {device.name} with os {device.os}. Gathering raw output to return.")
+            print(f"  Error: pyATS lacks a parser for device {device.name} with os {device.os}. Gathering raw output of '{command}' to return.")
         except SchemaEmptyParserError: 
             print(f"  Error: No valid data found from output from device {device.name}. Gathering raw output to return.")
 
@@ -75,6 +78,30 @@ def learn_feature(device, feature=None, **kwargs):
     else:
         output = 'No feature to gather.'
         return output
+
+
+def configure_diff(device, configuration=None, **kwargs):
+
+    if configuration:
+        # get running config as dict
+        config_pre = device.api.get_running_config_dict()
+
+        # deploy
+        device.configure(configuration)
+
+        # get running config as dict
+        config_post = device.api.get_running_config_dict()
+
+        # diff
+        dd = Diff(config_pre, config_post)
+        dd.findDiff()
+
+        # as it is built from a dict diff you want tidy up and remove the trailing : from each line
+        output = re.sub(r":$", "", str(dd), flags=re.M)
+    else:
+        output = 'You need a configuration to deploy for this example.'
+
+    return output
 
 
 def run_tasks(device, **kwargs):

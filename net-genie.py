@@ -5,8 +5,7 @@
 
 
 from genie.testbed import load
-from genie.utils.diff import Diff
-from genie.utils import Dq
+
 from unicon.core.errors import ConnectionError
 import argparse
 import sys
@@ -14,6 +13,8 @@ import sys
 from ng_testbeds import get_testbed
 from ng_runners import Runner
 import ng_tasks
+
+import random
 
 
 def main(args):
@@ -91,18 +92,27 @@ def main(args):
              'name': 'send_config',
              'function': ng_tasks.send_config,
              'kwargs': { 
-                      'configuration' : ("service timestamps debug datetime msec\n"
-                                         "service timestamps log datetime msec\n") 
-                     }
+                       'configuration' : ("service timestamps debug datetime msec\n"
+                                          "service timestamps log datetime msec\n") 
+                       }
             },
             {
              'name': 'learn_feature',
              'function': ng_tasks.learn_feature,
              'kwargs':  { 'feature' : 'bgp' }
             },
+            {
+             'name': 'configure_diff',
+             'function': ng_tasks.configure_diff,
+             'kwargs':  { 'configuration':  (f"interface lo100\n"
+                                             f"description random={random.randrange(100, 1000, 3)}\n")
+                        }
+            },
             ]
+
+    #tasks = tasks[-1:]
             
-    results = runner.run(ng_tasks.run_tasks, name="A Test Task", testbed=testbed, tasks=tasks)
+    results = runner.run(ng_tasks.run_tasks, name="Run example tasks", testbed=testbed, tasks=tasks)
 
     # print task results
     print(f"Task = {results['task']}")
