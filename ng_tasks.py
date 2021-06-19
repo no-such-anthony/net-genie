@@ -1,6 +1,7 @@
 from unicon.eal.dialogs import Statement, Dialog
 from genie.libs.parser.utils.common import ParserNotFound
 from genie.metaparser.util.exceptions import SchemaEmptyParserError
+from genie.libs.sdk.apis.utils import compare_config_dicts
 from genie.utils.diff import Diff
 from genie.utils import Dq
 import re
@@ -93,11 +94,10 @@ def configure_diff(device, configuration=None, **kwargs):
         config_post = device.api.get_running_config_dict()
 
         # diff
-        dd = Diff(config_pre, config_post)
-        dd.findDiff()
+        diff = compare_config_dicts(config_pre, config_post)
 
-        # as it is built from a dict diff you want tidy up and remove the trailing : from each line
-        output = re.sub(r":$", "", str(dd), flags=re.M)
+        # as diff is built from a dict diff you may want to tidy up and remove the trailing : from each line
+        output = re.sub(r":$", "", str(diff), flags=re.M)
     else:
         output = 'You need a configuration to deploy for this example.'
 
