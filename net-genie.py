@@ -13,9 +13,6 @@ import sys
 from ng_testbeds import get_testbed
 from ng_runners import Runner
 from ng_task import ng_task
-import ng_subtasks
-
-import random
 
 
 def main(args):
@@ -66,61 +63,16 @@ def main(args):
     # Load multiprocess task runner
     runner = Runner(4)
 
-    # A task array helps to separate the pyats/genie capabilities that I am attempting to make examples for.
-    # With the side effect that it kind of looks like an ansible playbook...
-    tasks = [
-            {
-             'name': 'basic_command',
-             'function': ng_subtasks.basic_command,
-             'kwargs': { 'command' : 'show version | inc uptime'}
-            },
-            {
-             'name': 'dialog_command',
-             'function': ng_subtasks.dialog_command,
-             'kwargs': { 
-                        'command' : 'copy running-config tftp://192.168.204.1',
-                        'dialog_helper': 'copy_tftp'
-                       }
-            },
-            {
-             'name': 'parse_command',
-             'function': ng_subtasks.parse_command,
-             'kwargs': { 'command' : 'show version' }
-            },
-            {
-             'name': 'send_config',
-             'function': ng_subtasks.send_config,
-             'kwargs': { 
-                       'configuration' : ("service timestamps debug datetime msec\n"
-                                          "service timestamps log datetime msec\n") 
-                       }
-            },
-            {
-             'name': 'learn_feature',
-             'function': ng_subtasks.learn_feature,
-             'kwargs':  { 'feature' : 'bgp' }
-            },
-            {
-             'name': 'configure_diff',
-             'function': ng_subtasks.configure_diff,
-             'kwargs':  { 'configuration':  (f"interface lo100\n"
-                                             f"description random={random.randrange(100, 1000, 3)}\n")
-                        }
-            },
-            ]
+    # You can also send additional arguments which will be passed to the task        
+    output = runner.run(ng_task, name="Run example tasks", testbed=testbed)
 
-    #tasks = tasks[-2:]
-            
-    output = runner.run(ng_task, name="Run example tasks", testbed=testbed, tasks=tasks)
-
-    # print task results
+    # Print task results
     print(f"Task = {output['task']}")
-
-    # print results
+    
     for device, task_output in sorted(output['devices'].items()):
         print('='*20,f"Results for {device}",'='*20)
         if 'exception' not in task_output:
-            # if no exception we should have a dictionary, so lets try to pretty it up
+            # if no exception we should have a dictionary
             for k,v in task_output['result'].items():
                 print('-'*len(k))
                 print(k)

@@ -4,6 +4,7 @@ from genie.metaparser.util.exceptions import SchemaEmptyParserError
 from genie.libs.sdk.apis.utils import compare_config_dicts
 from genie.utils.diff import Diff
 from genie.utils import Dq
+from unicon.core.errors import SubCommandFailure
 import re
 
 
@@ -103,3 +104,21 @@ def configure_diff(device, configuration=None, **kwargs):
 
     return output
 
+
+def ping_ips(device, ips=[], **kwargs):
+
+    output = ''
+    for ip in ips:
+        prefix = 'Success'
+        try:
+            ping_result = device.ping(ip)
+        except SubCommandFailure as e:
+            prefix = 'Failed'
+            if ['Success rate is 0 percent'] in e.args:
+                ping_result = e.args[-1]
+            else:
+                ping_result = e
+
+        output += f'{ip}: {prefix}\n{ping_result}\n'
+        
+    return output
