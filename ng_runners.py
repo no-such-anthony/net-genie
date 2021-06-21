@@ -1,4 +1,5 @@
 from pyats.async_ import pcall
+from unicon.core.errors import ConnectionError
 import traceback
 
     
@@ -11,6 +12,10 @@ def task_wrapper(**kwargs):
 
     try:
         result['result'] = task(device, **kwargs)
+
+    except ConnectionError as e:
+        result['exception'] = e
+        result['result'] = "unicon.core.errors.ConnectionError: failed to connect"
 
     except Exception as e:
         result['exception'] = e

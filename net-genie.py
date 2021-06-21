@@ -6,7 +6,6 @@
 
 from genie.testbed import load
 
-from unicon.core.errors import ConnectionError
 import argparse
 import sys
 
@@ -83,10 +82,8 @@ def main(args):
                 print()
         else:
             print('*'*5,f"ERROR")
-            if isinstance(task_output['exception'], ConnectionError):
-                print("unicon.core.errors.ConnectionError: failed to connect")
-            else:
-                print(f"{task_output['result']}")
+            print(f"{task_output['result']}")
+            print()
     print()
 
 
