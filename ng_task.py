@@ -81,7 +81,7 @@ def ng_task(device, **kwargs):
         output[task['name']] = task_wrapper(task=task['function'], device=device, **task['kwargs'])
 
         # subtasks may return an 'exception', as we are using task_wrapper,
-        # or you could add a 'failure' key in the return output
+        # or you could add a 'failed' key in the return output of a subtask
         # you could choose to break out of this task loop here
         # instead of continuing through the remaining subtasks
 

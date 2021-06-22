@@ -71,19 +71,15 @@ def main(args):
     for device, task_output in sorted(output['devices'].items()):
         print('='*20,f"Results for {device}",'='*20)
         if 'exception' not in task_output:
-            # if no exception we should have a dictionary
+            # if no exception in main loop we should have a dictionary
             for k,v in task_output['result'].items():
                 print('-'*len(k))
                 print(k)
                 print('-'*len(k))
-                if 'exception' in v:
-                    print('*'*5,f"ERROR")
                 print(v['result'])
                 print()
         else:
-            print('*'*5,f"ERROR")
-            print(f"{task_output['result']}")
-            print()
+            print(task_output['result'])
     print()
 
 
