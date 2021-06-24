@@ -10,7 +10,7 @@ import argparse
 import sys
 
 from ng_testbeds import get_testbed
-from ng_runners import Runner
+from ng_runners import WithPCall, WithThreadPool
 from ng_task import ng_task
 
 
@@ -60,7 +60,8 @@ def main(args):
     #sys.exit()
 
     # Load multiprocess task runner
-    runner = Runner(4)
+    runner = WithPCall(4)
+    #runner = WithThreadPool(4)
 
     # You can also send additional arguments which will be passed to the task        
     output = runner.run(ng_task, name="Run example tasks", testbed=testbed)

@@ -1,4 +1,5 @@
 from pyats.async_ import pcall
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicon.core.errors as unicon_err
 import traceback
 
@@ -36,7 +37,7 @@ def task_wrapper(**kwargs):
     return result
 
 
-class Runner(object):
+class WithPCall(object):
 
     def __init__(self, num_workers: int = 20) -> None:
         self.num_workers = num_workers
@@ -61,6 +62,30 @@ class Runner(object):
         for chunk in chunks:
             chunk_result = pcall(task_wrapper, device=(testbed.devices[device] for device in chunk), ckwargs=kwargs)
             for worker_result in chunk_result:
+                results['devices'][worker_result['device']] = worker_result
+
+        return results
+
+
+class WithThreadPool(object):
+
+    # as_completed is great if you want a progress bar or stop on an exception/failure?
+
+    def __init__(self, num_workers: int = 20) -> None:
+        self.num_workers = num_workers
+
+    def run(self, task, name = None, testbed = None, **kwargs):
+
+        # inject positional argument 'task' into kwargs for use in task
+        kwargs['task'] = task
+        results = {}
+        results['task'] = name or task.__name__
+        results['devices'] = {}
+
+        with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+            futures = {pool.submit(task_wrapper, device=device, **kwargs): device for device in testbed.devices.values()}
+            for future in as_completed(futures):
+                worker_result = future.result()
                 results['devices'][worker_result['device']] = worker_result
 
         return results

@@ -94,6 +94,8 @@ def configure_diff(device, configuration=None, **kwargs):
         # get running config as dict
         config_post = device.api.get_running_config_dict()
 
+        #save?
+
         # diff
         diff = compare_config_dicts(config_pre, config_post)
 
